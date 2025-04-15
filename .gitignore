@@ -1,6 +1,7 @@
 # Data files
 *.csv
-
+*.tif
+*.img
 
 # Simulation output
 .landis/simulations/
