@@ -4,8 +4,8 @@
 *.img
 
 # Simulation output
-.SoutheastAlaska/landis/simulations/
-
+landis/simulations/
+jetstream/docker/
 
 # Editor / OS files
 .vscode/
