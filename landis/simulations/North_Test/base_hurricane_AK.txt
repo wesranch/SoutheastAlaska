@@ -1,0 +1,91 @@
+LandisData  "Base Hurricane"
+
+Timestep  1
+
+InputUnitsEnglish N
+
+HurricaneRandomNumberSeed 1974
+
+
+>> Likelihood a given year will have this number of storms
+StormOccurrenceProbabilities
+ >> Storms
+ >>  Per
+ >>  Year       Probability  << Sum must = 1.0
+0	0.05
+1	0.15
+2	0.22
+3	0.22
+4	0.17
+5	0.1
+6	0.05
+7	0.03
+8	0.01
+
+
+
+>> Max Wind Speed at Landfall is on a log normal distribution
+LowBoundLandfallWindSpeed	32 << kmh
+ModeLandfallWindSpeed	55 << kmh  (Trevor = 65)
+HighBoundLandfallWindSpeed  120 << kmh  Values greater are truncated.
+
+CoastalSlope -0.903 << relative to the larger landscape
+
+MeanStormIntersectionX 417.618
+MeanStormIntersectionY 105.420
+
+LandfallSigma 1 << the variance of landfalls, assuming a mean location as indicated above
+
+StormDirectionMu 204.4397 << average direction
+StormDirectionSigma 71.06188 << variation
+
+MinimumWindSpeedforDamage	60 << units = kph; should match the third column in the WindSpeedVulnerabilities table
+
+ExposureMaps << table
+>> Column 1 = degree
+>> Column 2 = map name
+135	north_wind_135.tif
+180	north_wind_180.tif
+225	north_wind_225.tif
+270   north_wind_270.tif
+
+WindSpeedVulnerabilities
+>> Species		          MaxAge			Mortality   Probabilities
+   MountainHemlock           20        60:0.10     75:0.30    110:0.62  140:0.85       
+   MountainHemlock           60        60:0.40     75:0.60    110:0.80  140:0.95
+   MountainHemlock          800        60:0.60     75:0.80    110:0.90  140:0.98
+   SitkaSpruce               20        60:0.10     75:0.30    110:0.62  140:0.85       
+   SitkaSpruce               60        60:0.40     75:0.60    110:0.80  140:0.95
+   SitkaSpruce              800        60:0.60     75:0.80    110:0.90  140:0.98
+   WesternHemlock            20        60:0.10     75:0.30    110:0.62  140:0.85       
+   WesternHemlock            60        60:0.40     75:0.60    110:0.80  140:0.95
+   WesternHemlock           800        60:0.60     75:0.80    110:0.90  140:0.98
+   AlaskaYellowCedar         60        60:0.01     75:0.18    110:0.40  140:0.75
+   AlaskaYellowCedar        100        60:0.05     75:0.28    110:0.60  140:0.80
+   AlaskaYellowCedar       3500        60:0.10     75:0.40    110:0.70  140:0.90
+   LodgepolePine             40        60:0.10     75:0.22    110:0.75  140:0.90
+   LodgepolePine            250        60:0.50     75:0.70    110:0.85  140:0.98
+   WesternRedcedar           60        60:0.01     75:0.18    110:0.40  140:0.75
+   WesternRedcedar          100        60:0.05     75:0.28    110:0.60  140:0.80
+   WesternRedcedar         1000        60:0.10     75:0.40    110:0.70  140:0.90
+   RedAlder                 100        60:0.05     75:0.18    110:0.75  140:1.0
+   BalsamPoplar              20        60:0.20     75:0.40    110:0.60  140:0.85
+   BalsamPoplar              40        60:0.25     75:0.60    110:0.80  140:0.90
+   BalsamPoplar             200        60:0.40     75:0.78    110:0.92  140:0.95
+   SubalpineFir              20        60:0.10     75:0.30    110:0.62  140:0.85       
+   SubalpineFir              60        60:0.40     75:0.60    110:0.80  140:0.95
+   SubalpineFir             250        60:0.60     75:0.80    110:0.90  140:0.98
+   PaperBirch                20        60:0.01     75:0.18    110:0.40  140:0.75
+   PaperBirch                60        60:0.05     75:0.28    110:0.60  140:0.80
+   PaperBirch               140        60:0.10     75:0.40    110:0.70  140:0.90
+   PacificSilverFir         500        60:0.05     75:0.18    110:0.75  140:1.0
+   DouglasFir               800        60:0.05     75:0.18    110:0.75  140:1.0
+   WhiteSpruce              250        60:0.20     75:0.40    110:0.60  140:0.85
+   QuakingAspen              20        60:0.20     75:0.40    110:0.60  140:0.85
+   QuakingAspen              40        60:0.25     75:0.60    110:0.80  140:0.90
+   QuakingAspen              60        60:0.40     75:0.78    110:0.92  140:0.95
+   WesternWhitePine         400        60:0.05     75:0.18    110:0.75  140:1.0
+   EngelmannSpruce          500        60:0.05     75:0.18    110:0.75  140:1.0
+
+MapNames  hurricane/max-windspeed-{timestep}-{stormNumber}.bmp
+LogFile   hurricane-log.csv

@@ -1,0 +1,16 @@
+LandisData                	"Climate Config"				
+		
+ClimateTimeSeries		Monthly_RandomYears
+ClimateFile			CHELSA_W5E5_Historical_1976-2016_V8.csv
+>>ClimateFileFormat		Monthly_Temp-K_Precip-mmMonth
+
+SpinUpClimateTimeSeries		Monthly_RandomYears
+SpinUpClimateFile		CHELSA_W5E5_Historical_1976-2016_V8.csv
+>>SpinUpClimateFileFormat		Monthly_Temp-K_Precip-mmMonth
+
+UsingFireClimate		no
+FineFuelMoistureCode		85
+DuffMoistureCode		8
+DroughtCode			15
+FirstDayFire			0
+LastDayFire			360

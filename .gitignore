@@ -1,0 +1,17 @@
+# Data files
+*.csv
+
+
+# Simulation output
+.landis/simulations/
+
+
+# Editor / OS files
+.vscode/
+*.swp
+*.swo
+*.bak
+*~
+Thumbs.db
+ehthumbs.db
+Desktop.ini

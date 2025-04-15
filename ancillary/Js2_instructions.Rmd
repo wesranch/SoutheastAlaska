@@ -1,0 +1,105 @@
+---
+title: Staring JS2 Instance and Running LANDIS inside a container
+output: html_document
+author: 'Wesley Rancher'
+date: 2024-12-23
+editor_options: 
+  chunk_output_type: console
+---
+
+# Landis-ii on Jetstream
+
+## Start a Jetstream deployment on cacao
+
+Navigate to <https://cacao.jetstream-cloud.org/templates>
+
+select openstack-single-image –\> deploy
+
+select advanced. These should be your parameters:
+
+![](images/deployment-params.png)
+
+# Hop into the terminal
+
+Let's upload our landis files to our cloud repository before accessing our deployment.
+
+```{bash, eval = FALSE}
+#brew install awscli
+aws configure
+
+#access key and secret key can be found at coldfront login
+https://coldfront.osn.mghpcc.org/ #i use RW keys
+#region us-west-2
+#format json
+
+#local files to s3
+aws s3 sync interior-AK-input/ s3://landis-ii-input/interior-AK-input/ --endpoint-url https://usgs2.osn.mghpcc.org --recursive
+
+#list files in s3 bucket
+aws s3 ls s3://landis-ii-input/interior-AK-input/ --endpoint-url https://usgs2.osn.mghpcc.org
+
+```
+
+# ssh into Jetstream deployment 
+
+You will need to generate ssh keys in your working directory before accessing the jetstream instance. 
+
+```{bash, eval = FALSE}
+#print your key
+
+#ssh keygen (if you need new ssh keys)
+cat .ssh/id_rsa.pub   #copy what is displayed
+
+#add your public keys to jetstream --> open the web shell on cacao
+nano .ssh/authorized_key
+
+#paste your key
+#ctrl+X then Y enter to get out
+
+#in your local terminal run the connect-jetstream.sh script
+bash connect-jetstream.sh #assuming you're in the folder it is in
+
+#you will be prompted for your access ID and the public IP address of the deployment
+```
+
+After jumping into JS2, we run a script to install AWS and sync our landis files from the cloud
+
+```{bash, eval = FALSE}
+nano setup-jetstream.sh
+#change the last line which syncs your files (make sure it points to the folder you need):
+
+#aws s3 sync s3://landis-ii-input/interior-AK-input ~/landis/input #--endpoint-url "$S3_ENDPOINT_URL"
+
+#CTRL+X and Y to exit
+
+#now run it
+bash setup-jetstream.sh
+
+#access keys (2) can be found on coldfront login
+https://coldfront.osn.mghpcc.org/
+#i used read and write keys
+
+#region is us-west-2
+#format is json
+```
+
+Start a container
+
+```{bash, eval = FALSE}
+#we can now start a docker container mounting (v-flag) our files inside
+sudo docker run --platform linux/amd64 -v /path/to/landis/input:/folderNameInContainer wesranch/dgsv8:latest
+```
+
+Once inside the container, you can navigate to the folder where your landis input files are and run your scenario file:
+
+```{bash}
+cd folderNameInContainer
+
+dotnet $LANDIS_CONSOLE scenario_file.txt
+```
+
+# Python script to start multiple containers in lieu of manually starting a container is to come...
+
+```{bash}
+python3 runlandis.py
+```

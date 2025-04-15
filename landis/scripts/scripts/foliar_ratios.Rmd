@@ -1,0 +1,208 @@
+---
+title: "Computing the foliar ratio by species"
+author: Wesley Rancher, Melissa Lucash
+date: 8/26/24
+output: html_notebook
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r libs}
+seDIR <- "F:/seAlaska/landis/"
+options(scipen=999)
+library(dplyr)
+```
+
+
+```{r}
+options(scipen=999)
+FIA_dir <- "C:/Users/wesr/University of Oregon Dropbox/Wesley Rancher/Rancher/FIA/"
+#FIA_dir<-("C:/Users/mlucash/University of Oregon Dropbox/Melissa Lucash/Lucash_Lab/Rancher/FIA/")
+
+#interior plt CNs
+interior_plt_CN <- read.csv("F:/fullLandscape/DGS_Calibration/plot_to_mapcode.csv")
+
+#Reads in all the trees.
+tree_data_AK<-read.csv(paste0(FIA_dir, "AK_TREE.csv"))
+tree_data_AK_cropped <- right_join(tree_data_AK, interior_plt_CN, by= "PLT_CN")
+
+#read uncropped
+tree_data <- tree_data_AK[,c('PLT_CN','INVYR','SPCD','CARBON_AG','TPA_UNADJ','DIA')] #columns of interest
+
+species_table<-read.csv(paste0(FIA_dir, "REF_SPECIES.csv"))
+spp_table_short<-species_table[c(1:4, 44:45)]
+
+tree_species_joined<-left_join(tree_data, spp_table_short)
+unique(tree_species_joined$COMMON_NAME)
+
+
+#impute DIA values for spp w/o DIA measurements
+# aspenDIA_avg <- mean(tree_species_joined$DIA[tree_species_joined$COMMON_NAME == "quaking aspen"], na.rm = TRUE)
+# resin_birchDIA_avg <- mean(tree_species_joined$DIA[tree_species_joined$COMMON_NAME == "resin birch"], na.rm = TRUE)
+# alder_rows <- tree_species_joined$DIA & tree_species_joined$COMMON_NAME == "alder spp."
+# paper_birch_rows <- is.na(tree_species_joined$DIA) & tree_species_joined$COMMON_NAME == "paper birch"
+# #shrub_birch_rows <- is.na(tree_species_joined$DIA) & tree_species_joined$COMMON_NAME == "alder spp."
+# willow_rows <- is.na(tree_species_joined$DIA) & tree_species_joined$COMMON_NAME == "willow spp."
+# 
+# 
+# tree_species_joined$DIA[alder_rows] <- aspenDIA_avg
+# tree_species_joined$DIA[paper_birch_rows] <- aspenDIA_avg
+# #tree_species_joined$DIA[shrub_birch_rows] <- resin_birchDIA_avg
+# tree_species_joined$DIA[willow_rows] <- resin_birchDIA_avg
+```
+
+
+```{r}
+#spp missing from FIA that are in LANDIS
+#engelmann spruce <- could match to white spruce
+#doug fir <- could match to white spruce but adjust for higher foliar biomass
+#western white pine <- match to lodgepole pine but adjust for higher foliar biomass
+
+# set up foliar ratio column
+DBH<-tree_species_joined$DIA
+
+Jenkins_B1<-tree_species_joined$JENKINS_FOLIAGE_RATIO_B1
+Jenkins_B2<-tree_species_joined$JENKINS_FOLIAGE_RATIO_B2
+
+foliage_ratio<- exp(Jenkins_B1 + Jenkins_B2 / (DBH*2.54))
+#aspen_foliage_ratio<- exp(Jenkins_B1 + Jenkins_B2 / (5.739512*2.54))
+#resin_foliage_ratio<- exp(Jenkins_B1 + Jenkins_B2 / (5.474843*2.54))
+
+final_table_ratio<-cbind(tree_species_joined, foliage_ratio)
+
+Species_unique<- na.omit(unique(tree_species_joined$SPCD))
+#print(tree_species_joined$DIA[tree_species_joined$COMMON_NAME == "resin birch"])
+
+
+```
+
+```{r}
+#Calculate the min, mean and max foliar ratio for each species
+species.matrix <-NULL
+
+for (i in Species_unique){
+  each_FB_subset <- subset(final_table_ratio, final_table_ratio[,"SPCD"] == i)
+  
+  #checks for our missing species
+  min_ratio<- min(each_FB_subset$foliage_ratio, na.rm = T) 
+  mean_ratio<- mean(each_FB_subset$foliage_ratio, na.rm = T) 
+  max_ratio<- max(each_FB_subset$foliage_ratio, na.rm = T) 
+  FG_row <- cbind.data.frame(i, mean_ratio, min_ratio, max_ratio) #creating new dataframe 
+  species.matrix <- rbind(species.matrix, FG_row)
+}
+
+head(species.matrix)
+colnames(species.matrix) <- c("SPCD", "Avg_Foliage_Ratio", "Min_FR", "Max_FR")
+species.matrix_final<-species.matrix[order(species.matrix[,"SPCD"]),]
+
+# join by common names then write
+spp_lookup <- read.csv(paste0(FIA_dir, "TreeSppRef.csv"))
+setwd(seDIR)
+foliar_output<-write.csv(species.matrix_final, "converted_files/AvgFoliarRatios_FIA_SE.csv", row.names = F)
+print(species.matrix_final)
+
+#Combine it with a portion of the ref table so you know the common name of each species.
+# missing alder and willow
+colnames(spp_lookup)[colnames(spp_lookup) == "FIA.Code"] <- "SPCD"
+Combined_Table_Ratios <- left_join(species.matrix_final,spp_lookup, by="SPCD") %>%
+  select(SPCD, Avg_Foliage_Ratio, Min_FR, Max_FR, Common.Name)
+```
+
+
+```{r}
+#######
+# join to IC file // Dalton
+IC <- read.csv(paste0(seDIR, "/simulations/North_Test/North/AKCarbon_IC_WR_04082025.csv"))
+print(unique(IC$SpeciesName))
+
+
+update_common_name <- function(df) {
+  df %>% 
+    mutate(Common.Name = case_when(
+      Common.Name == "Sitka spruce" ~ "SitkaSpruce",
+      Common.Name == "white spruce" ~ "WhiteSpruce",
+      Common.Name == "black spruce" ~ "BlackSpruce",
+      Common.Name == "balsam poplar" ~ "BalsamPoplar",
+      Common.Name == "quaking aspen" ~ "QuakingAspen",
+      Common.Name == "Alaska yellow-cedar" ~ "AlaskaYellowCedar",
+      Common.Name == "western hemlock" ~ "WesternHemlock",
+      Common.Name == "mountain hemlock" ~ "MountainHemlock",
+      Common.Name == "Pacific silver fir" ~ "PacificSilverFir",
+      Common.Name == "red alder" ~ "RedAlder",
+      Common.Name == "western redcedar" ~ "WesternRedcedar",
+      Common.Name == "subalpine fir" ~ "SubalpineFir",
+      Common.Name == "paper birch" ~ "PaperBirch",
+      Common.Name == "lodgepole pine" ~ "LodgepolePine",
+      TRUE ~ Common.Name
+    ))
+}
+
+#calculations make sense but we lost a couple spp.
+Combined_Table_Ratios_v2 <- update_common_name(Combined_Table_Ratios)
+IC_w_foliar_measurements <- left_join(IC, Combined_Table_Ratios_v2, by = c("SpeciesName" = "Common.Name"))
+```
+
+```{r}
+############
+# for species missing DIA measurements (avg)
+white_spruce_ratio <- 0.07744032
+lodgepole_ratio <- 0.07364475 
+
+
+species_missing_ratios <- c("DouglasFir", "WesternWhitePine", "EngelmannSpruce")
+
+for (species in unique(IC_w_foliar_measurements$SpeciesName)) {
+  ratio<-NA
+  if (species %in% species_missing_ratios) {
+    if (species == "EngelmannSpruce") {
+      ratio <- white_spruce_ratio
+    } else if (species == "DouglasFir") {
+      ratio <- white_spruce_ratio+0.005#higher foliar ratio
+    } else if (species == "WesternWhitePine") {
+      ratio <- lodgepole_ratio+0.005#higher foliar ratio
+    } else {
+      ratio <- default_ratio
+    }
+  }
+  
+  
+  # apply respective ratios 
+  species_eq <- IC_w_foliar_measurements$SpeciesName == species
+  IC_w_foliar_measurements$LeafBiomass[species_eq] <- ratio * IC_w_foliar_measurements$CohortBiomass[species_eq]
+  IC_w_foliar_measurements$WoodBiomass[species_eq] <- IC_w_foliar_measurements$CohortBiomass[species_eq] - IC_w_foliar_measurements$LeafBiomass[species_eq]
+}
+
+# for all other species using DIA specific foliage ratio
+other_spp <- !(IC_w_foliar_measurements$SpeciesName %in% species_missing_ratios)
+
+IC_w_foliar_measurements$LeafBiomass[other_spp] <- IC_w_foliar_measurements$Avg_Foliage_Ratio[other_spp] * IC_w_foliar_measurements$CohortBiomass[other_spp]
+
+IC_w_foliar_measurements$WoodBiomass[other_spp] <- IC_w_foliar_measurements$CohortBiomass[other_spp] - IC_w_foliar_measurements$LeafBiomass[other_spp]
+
+#mosses (not needed for SE)
+moss_foliage_ratio <- 0.98
+moss_species <- c("Sphagnum", "Turfmoss", "Feathermoss")
+
+for (species in moss_species) {
+  species_condition <- IC_w_foliar_measurements$SpeciesName == species
+  IC_w_foliar_measurements$LeafBiomass[species_condition] <- moss_foliage_ratio * IC_w_foliar_measurements$CohortBiomass[species_condition]
+  IC_w_foliar_measurements$WoodBiomass[species_condition] <- IC_w_foliar_measurements$CohortBiomass[species_condition] - IC_w_foliar_measurements$LeafBiomass[species_condition]
+}
+```
+
+```{r}
+# clean it
+IC_new <- IC_w_foliar_measurements %>% select(MapCode, SpeciesName, CohortAge, CohortBiomass, WoodBiomass, LeafBiomass)
+
+# print average ratios
+ratios <- IC_new$WoodBiomass / IC_new$LeafBiomass
+print(mean(ratios))
+
+write.csv(IC_new, paste0(seDIR, "converted_files/AKCarbon_IC_WR_04082025_Foliar.csv"), row.names = FALSE)
+
+```
+
+
+
+
+

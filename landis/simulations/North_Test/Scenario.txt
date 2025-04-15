@@ -1,0 +1,32 @@
+LandisData        "Scenario"
+
+
+Duration          50
+
+Species           species_04082025.txt
+
+Ecoregions        Ecoregions.txt
+EcoregionsMap     Ecoregions_north_11142022.tif
+
+CellLength        90 << meters (0.09 ha)
+
+
+
+>> Succession Extension    	 Initialization File
+>> --------------------     	-------------------
+   "NECN Succession"   	        NECN_succession.txt  
+
+>>  Disturbance Extensions  	 Initialization File
+>> ----------------------   	-------------------
+>>  "SCRAPPLE"			         scrapple.txt
+>>  "Base Wind"                  base-wind.txt
+>>  "Base Hurricane"             base_hurricane_AK.txt
+    "Biomass Harvest"            AK_biomass_harvest_05232023.txt
+
+>>  Other Extensions         	 Initialization File
+>> ----------------         	-------------------
+  "Output Biomass"    		output-biomass.txt
+>>  "Output Biomass Reclass"	output-biomass-reclass.txt
+>>  "Output Biomass Community"   biomass_community.txt
+
+>> RandomNumberSeed 3333

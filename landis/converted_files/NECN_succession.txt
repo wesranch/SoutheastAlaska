@@ -1,0 +1,100 @@
+LandisData	"NECN Succession"
+
+Timestep  1
+
+SeedingAlgorithm        WardSeedDispersal 
+
+InitialCommunities      AKCarbon_IC_WR_04082025_Foliar.csv
+InitialCommunitiesMap   North_GNN_mapcodes_k1_01182023.tif
+ClimateConfigFile 	climate-generator-baseline.txt	
+
+
+SoilDepthMapName			    Depth_north_07292022.tif
+SoilDrainMapName			    Drain_north_07272022.tif
+SoilBaseFlowMapName			    baseflow_north_05232023.tif
+SoilStormFlowMapName			baseflow_north_05232023.tif
+SoilFieldCapacityMapName		FC_north_07272022.tif
+SoilWiltingPointMapName			WP_north_07272022.tif
+SoilPercentSandMapName			Sand_north_07272022.tif
+SoilPercentClayMapName			Clay_north_07272022.tif
+InitialSOM1CsurfMapName			SOM1surfC_north_03012023.tif
+InitialSOM1NsurfMapName			SOM1surfN_north_03012023.tif
+InitialSOM1CsoilMapName			SOM1soilC_north_03012023.tif
+InitialSOM1NsoilMapName			SOM1soilN_north_03012023.tif
+InitialSOM2CMapName			SOM2C_north_03012023.tif
+InitialSOM2NMapName			SOM2N_north_03012023.tif
+InitialSOM3CMapName			SOM3C_north_03012023.tif
+InitialSOM3NMapName			SOM3N_north_03012023.tif
+InitialDeadWoodSurfaceMapName	        deadwood_north_05112023.tif
+InitialDeadCoarseRootsMapName	        deadwood_soil_north_07272022.tif
+
+CalibrateMode 		no
+SmokeModelOutputs  	no
+WaterDecayFunction  	Ratio 
+
+ProbabilityEstablishAdjust 	0.0001
+InitialMineralN			3.0
+InitialFineFuels		0.99
+AtmosphericNSlope		0.004 << to get avg N of 0.063 from NADP: https://nadp.slh.wisc.edu/maps-data/ntn-interactive-map/
+AtmosphericNIntercept		0.0001
+Latitude			49.9
+DenitrificationRate		0.0014 << 0.55 from https://www.jstor.org/stable/pdf/3659033.pdf
+DecayRateSurf			0.9 << Serra Diez and Maxwell
+DecayRateSOM1			0.9
+DecayRateSOM2			0.015
+DecayRateSOM3			0.0001
+
+ANPPMapNames NECN/AGNPP-{timestep}.img
+ANPPMapFrequency 10
+ANEEMapNames NECN\AGNEE-{timestep}.img
+ANEEMapFrequency 10
+SoilCarbonMapNames NECN\SoilC-{timestep}.img
+SoilCarbonMapFrequency 10
+SoilNitrogenMapNames NECN\SoilN-{timestep}.img
+SoilNitrogenMapFrequency 10
+TotalCMapNames NECN\TotalC-{timestep}.img
+TotalCMapFrequency 10
+
+MaximumLAI
+
+>> Shade	Max LAI
+>> Class	
+>> ----------	--------------------	
+	1	1 
+	2	2.5 
+	3	3.5 
+	4	6
+	5	8
+		
+
+LightEstablishmentTable	
+					
+>>	Spp Shade	Probability					
+>>	Class		by Actual Shade					
+>>	 ----------	--------------------					
+>>		0	1	2	3	4	5
+	1	1.0	1.0	0.02	0.0	0.0	0.0
+	2	0.6	1.0	0.5	0.02	0.0	0.0
+	3	0.01	0.6	1.0	0.5	0.02	0.0
+	4	0.0	0.01	0.6	1.0	0.5	0.02
+	5	0.0	0.0	0.01	0.5	1.0	1.0
+		
+SpeciesParameters		NECN_sp.csv
+
+FunctionalGroupParameters	NECN_functional_parameters.csv
+			
+FireReductionParameters
+>>	Severity	WoodLitter	Litter	CohortWood	CohortFoliar	SOM
+>>	Fire		Reductions------------------------------------------------->
+	1		0.0		0.5	0.05		0.85		0.1
+	2		0.5		0.75	0.15		0.95		0.5
+	3		1.0		1.0	0.35		1.0		0.75		
+
+HarvestReductionParameters
+>>	Name		     	 	  WoodLitter	Litter	SOM		CohortWood	CohortLeaf
+>>			          	  	  Reduct		Reduct	Reduction	Removal		Removal
+	AK_YG_clearcut	    		0.5		 0.15	  0.2		 0.8		0.15
+	AK_OG_clearcut	    		0.5		 0.15	  0.2		 0.8		0.15
+	AK_precommercial_thinning	0.8		 0.14	  0.1		0.85		0.25
+	AK_commercial_thinning  	0.8		 0.14	  0.1		0.85		0.25
+	AK_cointent				  	0.8		 0.14	  0.1		0.85		0.25
