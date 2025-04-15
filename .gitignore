@@ -4,7 +4,7 @@
 *.img
 
 # Simulation output
-.landis/simulations/
+.SoutheastAlaska/landis/simulations/
 
 
 # Editor / OS files
