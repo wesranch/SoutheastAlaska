@@ -87,14 +87,16 @@ Start a container
 
 ```{bash, eval = FALSE}
 #we can now start a docker container mounting (v-flag) our files inside
-sudo docker run --platform linux/amd64 -v /path/to/landis/input:/folderNameInContainer wesranch/dgsv8:latest
+sudo docker run -d --platform linux/amd64 -v /path/to/landis/input:/folderNameInContainer esiil/landis_v8_linux:latest
+sudo docker container ls
+sudo docker exec -it container_name /bin/bash
 ```
 
 Once inside the container, you can navigate to the folder where your landis input files are and run your scenario file:
 
 ```{bash}
 cd folderNameInContainer
-
+LANDIS_CONSOLE=/opt/Core-Model-v8-MAIN/build/Release/Landis.Console.dll
 dotnet $LANDIS_CONSOLE scenario_file.txt
 ```
 
