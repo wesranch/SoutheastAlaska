@@ -111,7 +111,7 @@ set_auc_to_1 <- FALSE
 use_c_d <- "d"
 
 #what states should we use for the analysis?
-states <- c("MI", "MN", "WI")
+states <- c("AK")
 
 
 #-------------------------------------------------------------------------------
@@ -120,17 +120,18 @@ states <- c("MI", "MN", "WI")
 
 #this script uses the rFIA package to access the tables needed
 tables <- c("TREE","SEEDLING","PLOT", "COND", "SITETREE")
-directory <- "D:/Data/fia/rFIA_downloads"
+#directory <- "D:/Data/fia/rFIA_downloads"
+directory <- "F:/SoutheastAlaska/landis/scripts/LAI establishment from FIA data/example_data/"
 
 #species reference data
-sp_ref <- read.csv("D:/Data/fia/FIADB_REFERENCE/REF_SPECIES.csv")
+sp_ref <- read.csv(paste0(directory, "REF_SPECIES.csv"))
 
 #import fia data
 #using rFIA package automatically knits the tables together; you could also
 # use readr::read_csv() or import several csvs then rbind() 
-fia <- readFIA(dir = directory,
+fia <- getFIA(dir = directory,
                tables = tables,
-               states = states)
+               states = 'AK')
 
 trees <- fia$TREE
 plot <- fia$PLOT
@@ -171,8 +172,8 @@ plots_to_use <- plot %>%
 # Step 2: Crosswalk LANDIS and FIA species codes
 #-------------------------------------------------------------------------------
 
-func_table <- read.csv("./NECN_Functional_Table_inv_moisture.csv")
-sp_table <- read.csv("./NECN_Spp_Table_inv_necn7.csv") %>%
+func_table <- read.csv("example_data/NECN_Functional_Table_inv_moisture.csv")
+sp_table <- read.csv("example_data/NECN_Spp_Table_inv_necn7.csv") %>%
   left_join(func_table, by = "FunctionalGroupIndex") 
 
 

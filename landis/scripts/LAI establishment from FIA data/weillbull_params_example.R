@@ -102,7 +102,8 @@ set_auc_to_1 <- FALSE
 # you can use the c parameter to translate the whole curve up or the d parameter to stretch the
 # whole curve. This gives more flexibility in the kinds of shapes that can be fit,
 # and allows for the area under the curve to be greater than 1.
-use_c_d <- "d"
+
+use_c_d <- "d" #what should be used if you need shape, scale, and y-int
 
 
 #-------------------------------------------------------------------------------
@@ -110,13 +111,15 @@ use_c_d <- "d"
 # For this script, this has been preprocessed and limited to 20000 plots from MI and MN
 # and we're only analyzing balsam fir and quaking aspen
 #-------------------------------------------------------------------------------
-#species reference data
+#species reference data (example)
 sp_ref <- read.csv("./example_data/REF_SPECIES.csv")
-
 trees <- read.csv("./example_data/trees.csv")
 plot <- read.csv("./example_data/plot.csv")
 seedlings <- read.csv("./example_data/seedlings.csv")
 sitetrees <- read.csv("./example_data/sitetrees.csv")
+
+#for interior AK
+
 
 #-------------------------------------------------------------------------------
 # Step 2: Crosswalk LANDIS and FIA species codes

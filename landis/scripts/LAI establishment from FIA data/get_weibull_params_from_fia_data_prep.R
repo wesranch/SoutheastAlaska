@@ -8,7 +8,7 @@
 # 4) get amount of regeneration per plot per species
 # 5) fit distributions to regen~LAI values, with a few options
 
-# TODO filter potential plots to only those within seeding radius of adult trees.
+# TODO `filter` potential plots to only those within seeding radius of adult trees.
 # This would be pretty complicated, but it would match the LANDIS logic
 # Alternatively, make sure we're only using data from the correct forest type,
 # elevation, or some climatic variable, to make sure that we're not reducing 

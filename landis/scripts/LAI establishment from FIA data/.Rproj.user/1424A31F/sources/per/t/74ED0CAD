@@ -1,0 +1,26 @@
+{
+    "id": "74ED0CAD",
+    "path": "F:/SoutheastAlaska/landis/scripts/LAI establishment from FIA data/get_weibull_params_from_fia_all_data.R",
+    "project_path": "get_weibull_params_from_fia_all_data.R",
+    "type": "r_source",
+    "hash": "799339027",
+    "contents": "",
+    "dirty": false,
+    "created": 1744758896131.0,
+    "source_on_save": false,
+    "relative_order": 2,
+    "properties": {
+        "source_window_id": "",
+        "Source": "Source",
+        "cursorPosition": "151,44",
+        "scrollLine": "127"
+    },
+    "folds": "",
+    "lastKnownWriteTime": 1745338234,
+    "encoding": "UTF-8",
+    "collab_server": "",
+    "source_window": "",
+    "last_content_update": 1745338233311,
+    "read_only": false,
+    "read_only_alternatives": []
+}

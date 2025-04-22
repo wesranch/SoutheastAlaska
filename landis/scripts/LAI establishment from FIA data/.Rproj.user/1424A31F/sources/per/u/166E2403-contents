@@ -1,0 +1,66 @@
+library(terra)
+
+
+#bounds
+bounds <- vect("F:/randomForest_Landis/input/shp/FullLandscapeV3_082722.shp")
+
+# LAI
+LAI_yr5_april <- rast("F:/Rancher_Sims_Full_Landscape/FinalSimulationsThesis/TestRuns/interior_hist_ncar_04162025_GrowthOnly/DGS/LAI-1.img")
+LAI_yr5_december <- rast("F:/Rancher_Sims_Full_Landscape/interior_hist_ncar_12.2.2024/DGS/LAI-1.img")
+
+april_flipped <- flip(LAI_yr5_april, direction = "vertical")
+december_flipped <- flip(LAI_yr5_december, direction = "vertical")
+
+ext(april_flipped)<- ext(bounds)
+ext(december_flipped)<-ext(bounds)
+crs(april_flipped) <- "EPSG:3338"
+crs(december_flipped) <- "EPSG:3338"
+
+LAI_april <- mask(april_flipped, bounds)
+LAI_dec <- mask(december_flipped, bounds)
+
+plot(LAI_april, main = "LAI April Sim")
+plot(LAI_dec, main = "LAI December Sim")
+
+april_average <- mean(values(LAI_april), na.rm = T)
+december_average <- mean(values(LAI_dec), na.rm = T)
+april_sd <- sd(values(LAI_april), na.rm = T)
+december_sd <- sd(values(LAI_dec), na.rm = T)
+
+print(paste0("average LAI yr 5 (April Sim): ", april_average))
+print(paste0("SD LAI yr 5 (April Sim): ", april_sd))
+
+print(paste0("average LAI yr 5 (December Sim): ", december_average))
+print(paste0("SD LAI yr 5 (December Sim): ", december_sd))
+
+
+###############################
+# Available Water
+AW_yr5_april <- rast("F:/Rancher_Sims_Full_Landscape/FinalSimulationsThesis/TestRuns/interior_hist_ncar_04162025_GrowthOnly/DGS/AvailableWater-5.img")
+AW_yr5_december <- rast("F:/Rancher_Sims_Full_Landscape/interior_hist_ncar_12.2.2024/DGS/AvailableWater-5.img")
+
+AWapril_flipped <- flip(AW_yr5_april, direction = "vertical")
+AWdecember_flipped <- flip(AW_yr5_december, direction = "vertical")
+
+ext(AWapril_flipped)<- ext(bounds)
+ext(AWdecember_flipped)<-ext(bounds)
+crs(AWapril_flipped) <- "EPSG:3338"
+crs(AWdecember_flipped) <- "EPSG:3338"
+
+AW_april <- mask(AWapril_flipped, bounds)
+AW_dec <- mask(AWdecember_flipped, bounds)
+
+plot(AW_april, main = "AW April Sim")
+plot(AW_dec, main = "Aw December Sim")
+
+april_average <- mean(values(AW_april), na.rm = T)
+december_average <- mean(values(AW_dec), na.rm = T)
+april_sd <- sd(values(AW_april), na.rm = T)
+december_sd <- sd(values(AW_dec), na.rm = T)
+
+print(paste0("average LAI yr 5 (April Sim): ", april_average))
+print(paste0("SD LAI yr 5 (April Sim): ", april_sd))
+
+print(paste0("average LAI yr 5 (December Sim): ", december_average))
+print(paste0("SD LAI yr 5 (December Sim): ", december_sd))
+

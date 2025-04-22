@@ -1,0 +1,241 @@
+---
+title: "Comparing_FIA_LANDIS_Full_Landscape"
+author: "Colin Mast"
+date: "2023-02-13"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+```{r}
+library (dplyr)
+library(tidyverse)
+
+options(scipen=999)
+```
+
+Cbind initial time 0 against last time step (WR)
+
+```{r}
+dir <- "F:/Rancher_Sims_Full_Landscape/FinalSimulationsThesis/TestRuns/interior_hist_ncar_04212025_GrowthOnly/"
+#comparing to a sim from Shelby
+dir <- "F:/ShelbyFiles/rep5/interior_hist_ncar_rep5/"
+time0 <- read.csv(paste0(dir, "community-input-file-0.csv"))
+time13 <- read.csv(paste0(dir, "community-input-file-13.csv"))
+
+#add labels and join
+time0$label<-rep("Initial",times=nrow(time0))
+time32$label<-rep("Simulated",times=nrow(time32))
+rbind_all_spp<-rbind.data.frame(time0, time32) #%>% select(-CohortANPP)
+colnames(rbind_all_spp) <- c("Species_code", "Common_name", "Cohort_Age", "AGB", "Data_source")
+```
+
+# Reading in FIA data 
+```{r}
+FIA_results_dir<- "C:/Users/cmast2/Dropbox (University of Oregon)/Mast/LANDIS/Elliott State Forest/NECNCalibration/FIA_Biomass_StandAge/"
+
+FIA_Biomass <-read.csv(paste0(FIA_results_dir, "IC_map_codes_FIAonly.csv"), fill=TRUE, header=T)
+species_LUT <-read.csv(paste0(FIA_results_dir, "Elliot_species.csv"), fill=TRUE, header=T)
+FIA_Biomass_w_LUT<-left_join(FIA_Biomass,species_LUT, by=c("LANDIS_NAME"="Species_LANDIS_names"))
+
+FIA <- cbind.data.frame(FIA_Biomass_w_LUT$LANDIS_NAME, FIA_Biomass_w_LUT$CommonName, FIA_Biomass_w_LUT$CohortAge, FIA_Biomass_w_LUT$CohortBiomass)
+
+FIA$label<-rep("FIA",times=nrow(FIA))
+colnames(FIA) <- c("Species_code", "Common_name", "Cohort_Age", "AGB", "Data_source")
+```
+
+# Reading in LANDIS data (community input file year 84)
+```{r}
+LANDIS_dir <- "C:/Users/cmast2/LANDIS SIMS/Elliott State Research Forest/Run22.3.24/"
+LANDIS_dir <- "C:/Users/cmast2/Dropbox (University of Oregon)/Mast/LANDIS/Elliott State Forest/LANDIS output/NewCarbon_12.3.24/Historic/Historic-1/"
+LANDIS_dir <- "C:/Users/cmast2/Dropbox (University of Oregon)/Mast/LANDIS/Elliott State Forest/LANDIS output/FinalSims/Historic/Historic-1/"
+
+LANDIS_Community_Biomass <- read.csv(paste0(LANDIS_dir, "community-input-file-84.csv"))
+LANDIS_w_LUT<-left_join(LANDIS_Community_Biomass,species_LUT, by=c("SpeciesName"="Species_LANDIS_names"))
+
+LANDIS <- cbind.data.frame(LANDIS_w_LUT$SpeciesName, LANDIS_w_LUT$CommonName, LANDIS_w_LUT$CohortAge, LANDIS_w_LUT$CohortBiomass)
+
+LANDIS$label<-rep("LANDIS",times=nrow(LANDIS))
+colnames(LANDIS) <- c("Species_code", "Common_name", "Cohort_Age", "AGB", "Data_source")
+
+```
+
+# Combine FIA and LANDIS data into one DF
+```{r}
+rbind_all_spp<-rbind.data.frame(LANDIS, FIA)
+matrix_all_spp<- rbind_all_spp%>% drop_na()
+```
+
+# Creating ribbon
+```{r}
+plt.cols.short <- c("black", "blue")
+
+all_spp_summarised <- matrix_all_spp %>%
+  group_by(Common_name, Data_source, Cohort_Age)%>%
+  dplyr::summarise(mean_AGB = mean(AGB, na.rm = TRUE), SD_AGB = sd(AGB, na.rm = TRUE))
+
+all_spp_summarised <- replace(all_spp_summarised, is.na(all_spp_summarised), 0)
+
+#all_spp_summarised <- all_spp_summarised %>%
+#  mutate(Common_name = fct_relevel(Common_name, "Douglas-fir","Western hemlock","Western red-cedar", "Port Orford-cedar", "Sitka #spruce", "Bigleaf maple", "Oregon myrtle", "Oregon grape", "Vine maple", "Rhododendron", "Red alder", "Golden chinquapin", "Salal", #"Evergreen huckleberry", "Beaked hazelnut", "Cherry", "Pacific madrone", "Salmonberry", "Cascara buckthorn", "Ocean spray"))
+
+all_spp_summarised %>%
+  ggplot(aes(x=Cohort_Age, y=mean_AGB, color=Data_source))+
+  geom_line(size=0.6)+
+  ggtitle("Species Biomass LANDIS-II vs. FIA")+
+  labs(color='Data Source')+ 
+  scale_x_continuous(name="Cohort Age") +
+  scale_y_continuous(name= expression(paste("Aboveground biomass (g m"^"2",")")), labels = scales::comma)+
+  scale_color_manual(values= c('darkred', 'blue'))+
+  facet_wrap(~Common_name, scales="free")+
+  theme_bw()
+
+all_spp_summarised %>%
+  ggplot(aes(x=Cohort_Age, y=mean_AGB, color=Data_source, fill = Data_source))+
+  geom_ribbon(aes(ymin = mean_AGB - SD_AGB, ymax = mean_AGB + SD_AGB, alpha = 0.4))+
+  geom_line(size=0.25)+
+  ggtitle("Species Age-Biomass Relationship (LANDIS-II year 32 vs. FIA)")+
+  labs(color='Data Source', fill = 'Data Source')+ 
+  scale_x_continuous(name="Cohort Age") +
+  scale_y_continuous(name= expression(paste("Aboveground biomass (g m"^"2",")")), labels = scales::comma)+
+  scale_fill_manual(values = c('lightsalmon2', 'steelblue2'))+
+  scale_color_manual(values= c('darkred', 'blue'))+
+  #xlim(c(0,84))+
+  facet_wrap(~Common_name, scales="free")+
+  theme_bw()
+
+all_spp_summarised %>%
+  ggplot(aes(x=Cohort_Age, y=mean_AGB, color=Data_source))+
+  geom_point()+
+  ggtitle("Species Biomass LANDIS-II vs. FIA")+
+  labs(color='Data Source', fill = 'Data Source')+ 
+  scale_x_continuous(name="Cohort Age") +
+  scale_y_continuous(name= expression(paste("Aboveground biomass (g m"^"2",")")), labels = scales::comma)+
+  scale_color_manual(values= c('darkred', 'blue'))+
+  facet_wrap(~Common_name, scales="free")+
+  theme_bw()
+
+```
+
+Individual Scatterplots
+```{r}
+PSME<- matrix_all_spp%>%
+  filter(Species_code == "PSME")
+
+PSME %>%
+  ggplot(aes(x=Cohort_Age, y=AGB, color=Data_source))+
+  geom_point()+
+  ggtitle("PSME Biomass LANDIS-II vs. FIA")+
+  labs(color='Data Source', fill = 'Data Source')+ 
+  scale_x_continuous(name="Cohort Age") +
+  scale_y_continuous(name= expression(paste("Aboveground biomass (g m"^"2",")")), labels = scales::comma)+
+  scale_color_manual(values= c('darkred', 'blue'))+
+  theme_bw()
+
+GASH <- matrix_all_spp%>%
+  filter(Species_code == "GASH")
+
+GASH %>%
+  ggplot(aes(x=Cohort_Age, y=AGB, color=Data_source))+
+  geom_point()+
+  ggtitle("Salal Biomass LANDIS-II vs. FIA")+
+  labs(color='Data Source', fill = 'Data Source')+ 
+  scale_x_continuous(name="Cohort Age") +
+  scale_y_continuous(name= expression(paste("Aboveground biomass (g m"^"2",")")), labels = scales::comma)+
+  scale_color_manual(values= c('darkred', 'blue'))+
+  theme_bw()
+
+THPL <- matrix_all_spp%>%
+  filter(Species_code == "THPL")
+
+THPL %>%
+  ggplot(aes(x=Cohort_Age, y=AGB, color=Data_source))+
+  geom_point()+
+  ggtitle("Western Redcedar Biomass LANDIS-II vs. FIA")+
+  labs(color='Data Source', fill = 'Data Source')+ 
+  scale_x_continuous(name="Cohort Age") +
+  scale_y_continuous(name= expression(paste("Aboveground biomass (g m"^"2",")")), labels = scales::comma)+
+  scale_color_manual(values= c('darkred', 'blue'))+
+  theme_bw()
+
+ACMA <- matrix_all_spp%>%
+  filter(Species_code == "ACMA")
+
+ACMA %>%
+  ggplot(aes(x=Cohort_Age, y=AGB, color=Data_source))+
+  geom_point()+
+  ggtitle("Bigleaf Maple Biomass LANDIS-II vs. FIA")+
+  labs(color='Data Source', fill = 'Data Source')+ 
+  scale_x_continuous(name="Cohort Age") +
+  scale_y_continuous(name= expression(paste("Aboveground biomass (g m"^"2",")")), labels = scales::comma)+
+  scale_color_manual(values= c('darkred', 'blue'))+
+  theme_bw()
+
+MANE <- matrix_all_spp%>%
+  filter(Species_code == "MANE")
+
+MANE %>%
+  ggplot(aes(x=Cohort_Age, y=AGB, color=Data_source))+
+  geom_point()+
+  ggtitle("Oregon Grape Biomass LANDIS-II vs. FIA")+
+  labs(color='Data Source', fill = 'Data Source')+ 
+  scale_x_continuous(name="Cohort Age") +
+  scale_y_continuous(name= expression(paste("Aboveground biomass (g m"^"2",")")), labels = scales::comma)+
+  scale_color_manual(values= c('darkred', 'blue'))+
+  theme_bw()
+
+TSHE<- matrix_all_spp%>%
+  filter(Species_code == "TSHE")
+
+TSHE %>%
+  ggplot(aes(x=Cohort_Age, y=AGB, color=Data_source))+
+  geom_point()+
+  ggtitle("Western Hemlock Biomass LANDIS-II vs. FIA")+
+  labs(color='Data Source', fill = 'Data Source')+ 
+  scale_x_continuous(name="Cohort Age") +
+  scale_y_continuous(name= expression(paste("Aboveground biomass (g m"^"2",")")), labels = scales::comma)+
+  scale_color_manual(values= c('darkred', 'blue'))+
+  theme_bw()
+
+ACCI<- matrix_all_spp%>%
+  filter(Species_code == "ACCI")
+
+ACCI %>%
+  ggplot(aes(x=Cohort_Age, y=AGB, color=Data_source))+
+  geom_point()+
+  ggtitle("Vine Maple Biomass LANDIS-II vs. FIA")+
+  labs(color='Data Source', fill = 'Data Source')+ 
+  scale_x_continuous(name="Cohort Age") +
+  scale_y_continuous(name= expression(paste("Aboveground biomass (g m"^"2",")")), labels = scales::comma)+
+  scale_color_manual(values= c('darkred', 'blue'))+
+  theme_bw()
+```
+
+# Making boxplots 
+```{r}
+matrix_all_spp$Age_Rounded<- round_any(matrix_all_spp$Cohort_Age, 10, f = ceiling) 
+
+PSME <- filter(matrix_all_spp, Common_name == "Douglas-fir")
+
+PSME %>%
+  ggplot(aes(group = Age_Rounded, x=Age_Rounded, y=AGB, color = Data_source))+
+  xlim(0, 150)+
+  geom_boxplot(na.rm=TRUE)+
+  scale_color_manual(values=plt.cols.short)
+
+matrix_all_spp %>%
+  ggplot(aes(group = Age_Rounded, x=Age_Rounded, y=AGB, color = Data_source))+
+  xlim(0, 150)+
+  geom_boxplot(na.rm = TRUE)+
+  scale_color_manual(values=plt.cols.short)+
+  facet_wrap(~Common_name, scales="free")
+```
+
+
+```{r}
+FIA %>%
+  filter(Time == "50") %>%
+ # filter(Common_name == "Douglas-fir") %>%
+  ggplot(aes(group = Time, x = Time, y = AGB, Color = Common_name)) +  
+  geom_boxplot()
+```
+
